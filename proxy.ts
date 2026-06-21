@@ -19,7 +19,8 @@ export async function proxy(request: NextRequest) {
 
   let isAuthenticated = !!accessToken;
 
-  // 🔁 REFRESH LOGIC (якщо accessToken немає)
+  const response = NextResponse.next();
+
   if (!accessToken && refreshToken) {
     try {
       const refreshRes = await fetch(
@@ -35,18 +36,14 @@ export async function proxy(request: NextRequest) {
       if (refreshRes.ok) {
         const data = await refreshRes.json().catch(() => null);
 
-        const response = NextResponse.next();
-
         if (data?.accessToken) {
           response.cookies.set("accessToken", data.accessToken, {
             httpOnly: true,
             path: "/",
           });
+
+          isAuthenticated = true;
         }
-
-        isAuthenticated = true;
-
-        return response;
       }
     } catch {
       isAuthenticated = false;
@@ -60,10 +57,10 @@ export async function proxy(request: NextRequest) {
 
   // 🔓 PUBLIC ROUTES
   if (isPublicRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL("/", request.url)); // важливо: /
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
