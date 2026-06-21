@@ -6,11 +6,6 @@ import { getMe } from "@/lib/api/serverApi";
 
 import css from "./ProfilePage.module.css";
 
-export const metadata: Metadata = {
-  title: "Profile",
-  description: "User profile page",
-};
-
 export async function generateMetadata(): Promise<Metadata> {
   const user = await getMe();
 
