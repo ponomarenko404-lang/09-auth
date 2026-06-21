@@ -1,9 +1,24 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 
 import { getMe } from "@/lib/api/serverApi";
 
 import css from "./ProfilePage.module.css";
+
+export const metadata: Metadata = {
+  title: "Profile",
+  description: "User profile page",
+};
+
+export async function generateMetadata(): Promise<Metadata> {
+  const user = await getMe();
+
+  return {
+    title: `${user.username} | Profile`,
+    description: `Profile page of ${user.username}`,
+  };
+}
 
 export default async function ProfilePage() {
   const user = await getMe();
@@ -31,7 +46,6 @@ export default async function ProfilePage() {
 
         <div className={css.profileInfo}>
           <p>Username: {user.username}</p>
-
           <p>Email: {user.email}</p>
         </div>
       </div>

@@ -1,9 +1,11 @@
-import { fetchNoteById } from "@/lib/api/clientApi";
+import { fetchNoteById } from "@/lib/api/serverApi";
+
 import {
   dehydrate,
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
+
 import NoteDetailsClient from "./NoteDetails.client";
 import { Metadata } from "next";
 
@@ -16,6 +18,7 @@ export async function generateMetadata({
 }: NoteDetailsProps): Promise<Metadata> {
   const { id } = await params;
   const note = await fetchNoteById(id);
+
   return {
     title: `Note: ${note.title}`,
     description: note.content.slice(0, 30),
@@ -38,17 +41,19 @@ export async function generateMetadata({
 
 async function NoteDetails({ params }: NoteDetailsProps) {
   const { id } = await params;
-  //   const noteItem = fetchNoteById(id);
+
   const queryClient = new QueryClient();
 
   await queryClient.prefetchQuery({
     queryKey: ["note", id],
     queryFn: () => fetchNoteById(id),
   });
+
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <NoteDetailsClient />
     </HydrationBoundary>
   );
 }
+
 export default NoteDetails;

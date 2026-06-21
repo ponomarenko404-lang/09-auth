@@ -14,22 +14,53 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith(route),
   );
 
-  const response = await fetch(`${request.nextUrl.origin}/api/auth/session`, {
-    headers: {
-      cookie: request.headers.get("cookie") ?? "",
-    },
-  });
+  const accessToken = request.cookies.get("accessToken")?.value;
+  const refreshToken = request.cookies.get("refreshToken")?.value;
 
-  const session = await response.json().catch(() => null);
+  let isAuthenticated = !!accessToken;
 
-  const isAuthenticated = !!session;
+  // 🔁 REFRESH LOGIC (якщо accessToken немає)
+  if (!accessToken && refreshToken) {
+    try {
+      const refreshRes = await fetch(
+        `${request.nextUrl.origin}/api/auth/refresh`,
+        {
+          method: "POST",
+          headers: {
+            cookie: request.headers.get("cookie") ?? "",
+          },
+        },
+      );
 
+      if (refreshRes.ok) {
+        const data = await refreshRes.json().catch(() => null);
+
+        const response = NextResponse.next();
+
+        if (data?.accessToken) {
+          response.cookies.set("accessToken", data.accessToken, {
+            httpOnly: true,
+            path: "/",
+          });
+        }
+
+        isAuthenticated = true;
+
+        return response;
+      }
+    } catch {
+      isAuthenticated = false;
+    }
+  }
+
+  // 🔐 PRIVATE ROUTES
   if (isPrivateRoute && !isAuthenticated) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
+  // 🔓 PUBLIC ROUTES
   if (isPublicRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL("/profile", request.url));
+    return NextResponse.redirect(new URL("/", request.url)); // важливо: /
   }
 
   return NextResponse.next();
