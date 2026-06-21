@@ -1,4 +1,5 @@
-import { fetchNotes, isValidTag } from "@/lib/api";
+import { fetchNotes } from "@/lib/api/serverApi";
+import { isValidTag } from "@/lib/api/clientApi";
 import NotesClient from "./Notes.client";
 import css from "./NotesPage.module.css";
 import {

@@ -4,6 +4,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header/Header";
 import Footer from "@/components/Footer/Footer";
+import AuthProvider from "@/components/AuthProvider/AuthProvider";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -41,12 +42,14 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${roboto.className} ${roboto.variable}`}>
         <TanStackProvider>
-          <Header />
-          <main>
-            {children}
-            {modal}
-          </main>
-          <Footer />
+          <AuthProvider>
+            <Header />
+            <main>
+              {children}
+              {modal}
+            </main>
+            <Footer />
+          </AuthProvider>
         </TanStackProvider>
         <div id="modal-root" />
       </body>
